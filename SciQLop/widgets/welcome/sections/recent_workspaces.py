@@ -92,26 +92,31 @@ class WorkspaceDescriptionWidget(QFrame):
         self._description = QTextEdit(workspace.workspace.description)
         self._description.textChanged.connect(lambda x: setattr(self._workspace, "description", x))
         self._layout.addRow(QLabel("Description"), self._description)
-        self._open_button = QPushButton("Open workspace")
-        self._open_button.setMinimumHeight(40)
-        self._open_button.clicked.connect(
-            lambda: workspaces_manager_instance().load_workspace(workspace.workspace))
-        self._layout.addWidget(self._open_button)
+        if not workspaces_manager_instance().has_workspace:
+            self._open_button = QPushButton("Open workspace")
+            self._open_button.setIcon(QIcon("://icons/folder_open.png"))
+            self._open_button.setMinimumHeight(40)
+            self._open_button.clicked.connect(self._open_workspace)
+            self._layout.addWidget(self._open_button)
         self._duplicate_button = QPushButton("Duplicate workspace")
+        self._duplicate_button.setIcon(QIcon("://icons/folder_copy.png"))
         self._layout.addWidget(self._duplicate_button)
         self._duplicate_button.clicked.connect(self._duplicate_workspace)
         self._delete_button = QPushButton("Delete workspace")
-        self._delete_button.setIcon(QIcon(":/trash.png"))
+        self._delete_button.setIcon(QIcon("://icons/delete.png"))
         self._layout.addWidget(self._delete_button)
         self._delete_button.clicked.connect(self._delete_workspace)
         self._dialog = None
+
+    def _open_workspace(self):
+        workspaces_manager_instance().load_workspace(self._workspace.workspace)
+        self._open_button.setEnabled(False)
 
     def _delete_workspace(self):
         if self._dialog:
             self._dialog.deleteLater()
             self._dialog = None
         dialog = QMessageBox()
-        dialog.setOption(QMessageBox.Option.DontUseNativeDialog, True)
         dialog.setText(f"Are you sure you want to delete the workspace {self._workspace.workspace.name}?")
         dialog.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         dialog.setDefaultButton(QMessageBox.StandardButton.No)
